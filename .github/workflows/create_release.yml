@@ -35,3 +35,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_name: mfp_release_${{ steps.version.outputs.version }}
           asset_path: README-${{ steps.version.outputs.version }}.md
+          asset_content_type: text/markdown
