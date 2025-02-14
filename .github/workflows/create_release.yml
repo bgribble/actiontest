@@ -8,10 +8,13 @@ jobs:
       - uses: actions/checkout@v4
       # get the version for the release
       - name: version
-        run: cat VERSION
+        run: >-
+          echo "::set-output name=VERSION::$(
+            cat VERSION
+          )"
         id: version
       - name: Build
-        run: cp README.md README-${{ steps.version.outputs.version }}.md
+        run: cp README.md README-${{ steps.version.outputs.VERSION }}.md
       - name: Save built archive
         uses: actions/upload-artifact@v4
         with:
@@ -24,9 +27,9 @@ jobs:
         with:
           draft: false
           prerelease: false
-          release_name: actiontest ${{ steps.version.outputs.version }}
-          tag_name: v${{ steps.version.outputs.version }}
-          body_path: ANNOUNCE-${{ steps.version.outputs.version }}.md
+          release_name: actiontest ${{ steps.version.outputs.VERSION }}
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          body_path: ANNOUNCE-${{ steps.version.outputs.VERSION }}.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
