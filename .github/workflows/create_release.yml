@@ -35,13 +35,13 @@ jobs:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
       - name: Build
-        run: cp README.md README-${{ needs.make_release.outputs.VERSION }}-${{python-version}}.md
+        run: cp README.md README-${{ needs.make_release.outputs.VERSION }}-${{ matrix.python-version }}.md
       - name: Add built data to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.make_release.outputs.upload_url }}
-          asset_name: mfp_release_${{ needs.make_release.outputs.VERSION }}-${{python-version}}
-          asset_path: README-${{ needs.make_release.outputs.VERSION }}-${{python-version}}.md
+          asset_name: mfp_release_${{ needs.make_release.outputs.VERSION }}-${{ matrix.python-version }}
+          asset_path: README-${{ needs.make_release.outputs.VERSION }}-${{ matrix.python-version }}.md
           asset_content_type: text/markdown
