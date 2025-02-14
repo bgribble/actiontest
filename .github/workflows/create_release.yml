@@ -1,0 +1,33 @@
+name: Make release
+run-name: Make release
+on: [workflow_dispatch]
+jobs:
+  build_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+      # get the version for the release
+      - name: version
+        run: cat VERSION
+        id: version
+      - name: Build 
+        run: cp README.md README-${{ steps.version.outputs.version }}.md
+      - name: Save built archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: mfp_release_${{ steps.version.outputs.version }}
+          path: README-${{ steps.version.outputs.version }}.md
+      # get the MFP version for the release
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: actiontest ${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          body_path: ANNOUNCE-${{ steps.version.outputs.version }}.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
