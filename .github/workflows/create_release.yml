@@ -2,21 +2,19 @@ name: Make release
 run-name: Make release
 on: [workflow_dispatch]
 jobs:
-  build_release:
+  # First, get the version we are releasing
+  make_release:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{steps.version.outputs.VERSION}}
+      upload_url: ${{steps.create_release.outputs.upload_url}}
     steps:
       - uses: actions/checkout@v4
       # get the version for the release
-      - name: version
-        run: >-
-          echo "::set-output name=VERSION::$(
-            cat VERSION
-          )"
+      - name: Version
+        run: echo VERSION=`cat VERSION` >> "$GITHUB_OUTPUT"
         id: version
-      - name: Build
-        run: cp README.md README-${{ steps.version.outputs.VERSION }}.md
-      # get the MFP version for the release
-      - name: release
+      - name: Release
         uses: actions/create-release@v1
         id: create_release
         with:
@@ -27,12 +25,23 @@ jobs:
           body_path: ANNOUNCE-${{ steps.version.outputs.VERSION }}.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+  # build it for various python versions, and upload artifacts to release
+  build_matrix:
+    runs-on: ubuntu-latest
+    needs: make_release
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - name: Build
+        run: cp README.md README-${{ needs.make_release.outputs.VERSION }}-${{python-version}}.md
       - name: Add built data to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_name: mfp_release_${{ steps.version.outputs.version }}
-          asset_path: README-${{ steps.version.outputs.version }}.md
+          upload_url: ${{ needs.make_release.outputs.upload_url }}
+          asset_name: mfp_release_${{ needs.make_release.outputs.VERSION }}-${{python-version}}
+          asset_path: README-${{ needs.make_release.outputs.VERSION }}-${{python-version}}.md
           asset_content_type: text/markdown
